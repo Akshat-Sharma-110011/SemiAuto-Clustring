@@ -3,4 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="SemiAuto-Clustring" />
   </component>
+  <component name="ProjectRootManager" version="2" project-jdk-name="SemiAuto-Clustring" project-jdk-type="Python SDK" />
 </project>

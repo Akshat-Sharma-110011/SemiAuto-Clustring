@@ -25,3 +25,5 @@ optuna
 reportlab
 ipython
 jupyterlab
+hdbscan
+fpdf

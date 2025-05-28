@@ -1,6 +1,6 @@
 # data_ingestion_cli.py
 import argparse
-from data_ingestion import create_data_ingestion
+from src.data.data_ingestion import create_data_ingestion
 
 def main():
     # Set up argument parsing
