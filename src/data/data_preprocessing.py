@@ -20,7 +20,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 import logging
-import cloudpickle
+import dill as cloudpickle
 from typing import Dict, List, Tuple, Optional, Union, Any
 from sklearn.base import BaseEstimator, TransformerMixin
 from pathlib import Path
@@ -119,23 +119,28 @@ class IDColumnDropper(BaseEstimator, TransformerMixin):
         logger.info(f"Initialized ID column dropper with columns: {id_cols}")
 
     def fit(self, X, y=None):
-        # Store which columns actually exist in the data to drop
-        self.columns_to_drop = [col for col in self.id_columns if col in X.columns]
-        if self.columns_to_drop:
-            logger.info(f"Will drop ID columns: {self.columns_to_drop}")
-        else:
-            logger.warning(f"None of the specified ID columns {self.id_columns} found in data")
-        return self
+        try:
+            # Only drop columns that actually exist
+            self.columns_to_drop = [col for col in self.id_columns if col in X.columns]
+            if self.columns_to_drop:
+                logger.info(f"Will drop ID columns: {self.columns_to_drop}")
+            else:
+                logger.warning(f"No ID columns found in data: {self.id_columns}")
+            return self
+        except Exception as e:
+            logger.error(f"Error in IDColumnDropper fit: {str(e)}")
+            raise
 
     def transform(self, X):
-        if not self.columns_to_drop:
-            logger.warning("No ID columns to drop")
-            return X.copy()
+        try:
+            if not self.columns_to_drop:
+                return X.copy()
 
-        logger.info(f"Dropping ID columns: {self.columns_to_drop}")
-        X_transformed = X.drop(columns=self.columns_to_drop, errors='ignore')
-        logger.info(f"Columns after dropping IDs: {list(X_transformed.columns)}")
-        return X_transformed
+            logger.info(f"Dropping ID columns: {self.columns_to_drop}")
+            return X.drop(columns=self.columns_to_drop, errors='ignore')
+        except Exception as e:
+            logger.error(f"Error in IDColumnDropper transform: {str(e)}")
+            raise
 
 
 class MissingValueHandler(BaseEstimator, TransformerMixin):
@@ -388,17 +393,26 @@ class PreprocessingPipeline:
         self.config = config
         self.params = params
         self.dataset_name = config.get('dataset_name')
+        self._configured = False
 
-        # FIX: Load the actual feature store file instead of getting it from config
-        feature_store_path = config.get('feature_store_path')
-        if feature_store_path and os.path.exists(feature_store_path):
-            with open(feature_store_path, 'r') as f:
-                self.feature_store = yaml.safe_load(f)
-            logger.info(f"Loaded feature store from: {feature_store_path}")
+        # Accept either feature_store dictionary or path
+        if 'feature_store' in config:
+            self.feature_store = config['feature_store']
+            logger.info("Loaded feature store from provided dictionary")
+        elif 'feature_store_path' in config:
+            feature_store_path = config['feature_store_path']
+            if os.path.exists(feature_store_path):
+                with open(feature_store_path, 'r') as f:
+                    self.feature_store = yaml.safe_load(f)
+                logger.info(f"Loaded feature store from: {feature_store_path}")
+            else:
+                logger.warning(f"Feature store not found at: {feature_store_path}")
+                self.feature_store = {}
         else:
-            logger.warning(f"Feature store not found at: {feature_store_path}")
+            logger.warning("No feature store provided in config")
             self.feature_store = {}
 
+        # Initialize handlers
         self.missing_handler = None
         self.outlier_handler = None
         self.skewed_handler = None
@@ -407,6 +421,33 @@ class PreprocessingPipeline:
         self.id_dropper = None
         self.dimensionality_reducer = None
         self.correlated_groups = self._get_correlated_groups()
+
+    # ADD MISSING METHODS HERE
+    def handle_missing_values(self, method: str, columns: List[str]):
+        """Set missing value handling parameters"""
+        self.params.missing_values_method = method
+        self.params.missing_values_columns = columns
+
+    def handle_outliers(self, method: str, columns: List[str]):
+        """Set outlier handling parameters"""
+        self.params.outliers_method = method
+        self.params.outliers_columns = columns
+
+    def handle_skewed_data(self, method: str, columns: List[str]):
+        """Set skewed data handling parameters"""
+        self.params.skewness_method = method
+        self.params.skewness_columns = columns
+
+    def scale_numerical_features(self, method: str, columns: List[str]):
+        """Set numerical scaling parameters"""
+        self.params.scaling_method = method
+        self.params.scaling_columns = columns
+
+    def encode_categorical_features(self, method: str, columns: List[str], drop_first: bool):
+        """Set categorical encoding parameters"""
+        self.params.categorical_encoding_method = method
+        self.params.categorical_columns = columns
+        self.params.drop_first = drop_first
 
     def _get_correlated_groups(self):
         """Get correlated column groups from feature store"""
@@ -435,53 +476,49 @@ class PreprocessingPipeline:
         return groups
 
     def configure_pipeline(self):
-        """Configure all pipeline components"""
-        # Configure ID dropper - FIX: Add debug logging
+        """Configure all pipeline components AUTOMATICALLY from parameters"""
+        # Configure ID dropper
         id_cols = self.feature_store.get('id_cols', [])
-        logger.info(f"Feature store id_cols: {id_cols}")
-
         if id_cols:
             self.id_dropper = IDColumnDropper(id_cols)
             logger.info(f"Configured ID dropper for columns: {id_cols}")
-        else:
-            logger.warning("No ID columns found in feature store")
-            logger.warning(f"Available feature store keys: {list(self.feature_store.keys())}")
 
-        # Configure missing value handler
-        if self.params.missing_values_columns:
+        # Configure other components ONLY if parameters are provided
+        if self.params.missing_values_method:
             self.missing_handler = MissingValueHandler(
                 method=self.params.missing_values_method,
                 columns=self.params.missing_values_columns
             )
+            logger.info(f"Configured missing value handler: {self.params.missing_values_method}")
 
-        # Configure outlier handler
-        if self.params.outliers_method and self.params.outliers_columns:
+        if self.params.outliers_method:
             self.outlier_handler = OutlierHandler(
                 method=self.params.outliers_method,
                 columns=self.params.outliers_columns
             )
+            logger.info(f"Configured outlier handler: {self.params.outliers_method}")
 
-        # Configure skewed data handler
-        if self.params.skewness_method and self.params.skewness_columns:
+        if self.params.skewness_method:
             self.skewed_handler = SkewedDataHandler(
                 method=self.params.skewness_method,
                 columns=self.params.skewness_columns
             )
+            logger.info(f"Configured skewed data handler: {self.params.skewness_method}")
 
-        # Configure numerical scaler
-        if self.params.scaling_method and self.params.scaling_columns:
+        if self.params.scaling_method:
             self.numerical_scaler = NumericalScaler(
                 method=self.params.scaling_method,
                 columns=self.params.scaling_columns
             )
+            logger.info(f"Configured numerical scaler: {self.params.scaling_method}")
 
-        # Configure categorical encoder
-        if self.params.categorical_encoding_method and self.params.categorical_columns:
+        if self.params.categorical_encoding_method:
             self.categorical_encoder = CategoricalEncoder(
                 method=self.params.categorical_encoding_method,
                 columns=self.params.categorical_columns,
                 drop_first=self.params.drop_first
             )
+            logger.info(f"Configured categorical encoder: {self.params.categorical_encoding_method}")
 
         # Configure dimensionality reducer
         if self.params.dr_method and self.correlated_groups:
@@ -683,13 +720,22 @@ async def api_preprocessing_workflow(
         raise
 
 
+# Update the get_intel_config function
 def get_intel_config():
-    """Load intel configuration"""
+    """Load intel configuration using absolute path"""
     try:
-        with open('intel.yaml', 'r') as f:
+        # Try to determine project root
+        base_path = os.getenv("PROJECT_ROOT", os.getcwd())
+        config_path = os.path.join(base_path, "intel.yaml")
+
+        if not os.path.exists(config_path):
+            # Try one level up
+            config_path = os.path.join(base_path, "..", "intel.yaml")
+
+        with open(config_path, 'r') as f:
             return yaml.safe_load(f)
     except FileNotFoundError:
-        raise RuntimeError("intel.yaml not found!")
+        raise RuntimeError(f"intel.yaml not found at: {config_path}")
 
 
 def load_yaml(file_path: str) -> Dict:
@@ -703,8 +749,8 @@ def create_preprocessing_paths(intel_config: Dict) -> Dict:
     dataset_name = intel_config['dataset_name']
 
     preprocessing_paths = {
-        'train_preprocessed_path': f"data/interim/data_{dataset_name}/train.csv",
-        'test_preprocessed_path': f"data/interim/data_{dataset_name}/test.csv",
+        'train_preprocessed_path': f"data/interim/data_{dataset_name}/train_preprocessed.csv",
+        'test_preprocessed_path': f"data/interim/data_{dataset_name}/test_preprocessed.csv",
         'preprocessing_pipeline_path': f"model/pipelines/preprocessing_{dataset_name}/preprocessing.pkl",
         'preprocessing_report_path': f"reports/readme/preprocessing_report_{dataset_name}.md",
         'preprocessing_timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')

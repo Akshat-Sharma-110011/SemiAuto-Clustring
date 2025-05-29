@@ -285,21 +285,6 @@ class ModelBuilder:
                 "description": "Hierarchical Density-Based Spatial Clustering of Applications with Noise"
             }
 
-        # Add K-Medoids if available
-        if KMEDOIDS_AVAILABLE:
-            models["KMedoids"] = {
-                "class": KMedoids,
-                "params": {
-                    "n_clusters": 8,
-                    "metric": "euclidean",
-                    "method": "alternate",
-                    "init": "heuristic",
-                    "max_iter": 300,
-                    "random_state": 42
-                },
-                "description": "K-medoids clustering using actual data points as centroids"
-            }
-
         return models
 
     def load_data(self) -> Tuple[pd.DataFrame, pd.DataFrame]:

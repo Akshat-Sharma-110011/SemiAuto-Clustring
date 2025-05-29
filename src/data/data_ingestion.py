@@ -36,10 +36,10 @@ except ImportError:
         )
 
 # Constants
-PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-RAW_DATA_DIR = os.path.join(PROJECT_DIR, 'data', 'raw')
-FEATURE_STORE_DIR = os.path.join(PROJECT_DIR, 'references')
-REPORTS_DIR = os.path.join(PROJECT_DIR, 'reports/figures')
+PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+RAW_DATA_DIR = os.path.join('data', 'raw')
+FEATURE_STORE_DIR = os.path.join('references')
+REPORTS_DIR = os.path.join('reports/figures')
 CORRELATION_THRESHOLD = 0.65
 SKEWNESS_THRESHOLD = 0.5
 DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -58,19 +58,10 @@ class DataIngestion:
     """
 
     def __init__(self, project_dir=None):
-        """
-        Initialize the DataIngestion class
-
-        Args:
-            project_dir: Optional custom project directory path
-        """
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.logger.info("Initializing DataIngestion component")
+        self.project_dir = project_dir or os.getcwd()  # Use current dir if not specified
 
-        # Use custom project dir if specified, otherwise use default
-        self.project_dir = project_dir or PROJECT_DIR
-
-        # Update paths based on project directory
+        # Update paths relative to project_dir
         self.raw_data_dir = os.path.join(self.project_dir, 'data', 'raw')
         self.feature_store_dir = os.path.join(self.project_dir, 'references')
         self.reports_dir = os.path.join(self.project_dir, 'reports/figures')
@@ -80,6 +71,7 @@ class DataIngestion:
         os.makedirs(self.feature_store_dir, exist_ok=True)
         os.makedirs(self.reports_dir, exist_ok=True)
 
+        # Initialize other attributes
         self.df = None
         self.dataset_name = None
         self.feature_store_data = {
@@ -97,27 +89,26 @@ class DataIngestion:
             'test_size': TEST_SIZE
         }
 
+    # data_ingestion.py (updated method)
     def ingest_uploaded_file(self, file: Union[BinaryIO, str], filename: str = None) -> pd.DataFrame:
-        """Handles both file paths and file-like objects for data ingestion"""
         section(f"LOADING UPLOADED FILE", self.logger)
-
         try:
-            # Determine the filename and load data
             if isinstance(file, str):
-                # Handle file path input
+                # Handle file path
                 file_path = file
                 self.dataset_name = os.path.splitext(os.path.basename(file_path))[0]
                 self.logger.info(f"Reading file from path: {file_path}")
-                self.df = pd.read_csv(file_path)  # Load data from path
+                self.df = pd.read_csv(file_path)
             else:
-                # Handle file-like object
+                # Handle BytesIO object
                 if not filename:
                     self.dataset_name = f"dataset_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
                 else:
                     self.dataset_name = os.path.splitext(os.path.basename(filename))[0]
 
                 self.logger.info(f"Reading uploaded file: {self.dataset_name}")
-                self.df = pd.read_csv(file)
+                file.seek(0)  # Reset buffer position
+                self.df = pd.read_csv(file)  # Directly read from BytesIO
 
             self.logger.info(f"Dataset name: {self.dataset_name}")
 
@@ -470,30 +461,24 @@ class DataIngestion:
             return None
 
     def save_intel_yaml(self) -> str:
-        """
-        Save dataset information to intel.yaml in the main project directory
-        (Modified to remove target column reference)
-        """
         section("SAVING INTEL YAML", self.logger)
-
         try:
             intel_data = {
                 'dataset_name': self.dataset_name,
                 'original_file_name': self.feature_store_data.get('original_file_name', self.dataset_name),
                 'processed_timestamp': datetime.now().strftime(DATETIME_FORMAT),
-                'feature_store_path': os.path.join(self.feature_store_dir, 'feature_store.yaml'),
-                'train_path': os.path.join(self.raw_data_dir, 'train.csv'),
-                'test_path': os.path.join(self.raw_data_dir, 'test.csv'),
-                'plots_dir': self.plots_dir
+                'feature_store_path': os.path.abspath(os.path.join(self.feature_store_dir, 'feature_store.yaml')),
+                'train_path': os.path.abspath(os.path.join(self.raw_data_dir, 'train.csv')),
+                'test_path': os.path.abspath(os.path.join(self.raw_data_dir, 'test.csv')),
+                'plots_dir': os.path.abspath(self.plots_dir),
             }
 
-            yaml_path = os.path.join(self.project_dir, 'intel.yaml')
+            yaml_path = 'intel.yaml'
             with open(yaml_path, 'w') as f:
-                yaml.dump(intel_data, f, default_flow_style=False, sort_keys=False)
+                yaml.dump(intel_data, f, default_flow_style=False)
 
             self.logger.info(f"Intel metadata saved to: {yaml_path}")
             return yaml_path
-
         except Exception as e:
             self.logger.error(f"Failed to save intel YAML: {e}")
             return None
@@ -613,6 +598,15 @@ class DataIngestion:
         section("STARTING DATA INGESTION PIPELINE", self.logger, char='*', length=80)
 
         try:
+            # Replace the directory creation block with:
+            self.raw_data_dir = os.path.join(self.raw_data_dir, f"data_{self.dataset_name}")
+            self.feature_store_dir = os.path.join(self.feature_store_dir, f"feature_store_{self.dataset_name}")
+            self.plots_dir = os.path.join(self.reports_dir, f"plots_{self.dataset_name}")
+
+            os.makedirs(self.raw_data_dir, exist_ok=True)
+            os.makedirs(self.feature_store_dir, exist_ok=True)
+            os.makedirs(self.plots_dir, exist_ok=True)
+
             # Step 1: Load the file
             self.ingest_uploaded_file(file, filename)
 

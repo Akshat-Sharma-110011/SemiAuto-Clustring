@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import re
 import yaml
-import cloudpickle
+import dill as cloudpickle
 import hashlib
 import joblib
 from typing import Dict, List, Tuple, Union, Optional, Any

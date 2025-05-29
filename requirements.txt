@@ -27,3 +27,6 @@ ipython
 jupyterlab
 hdbscan
 fpdf
+fastapi
+uvicorn
+featuretools

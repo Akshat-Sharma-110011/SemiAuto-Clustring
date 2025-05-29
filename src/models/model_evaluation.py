@@ -5,7 +5,7 @@ This module evaluates the performance of trained clustering model using various 
 and stores the results in a YAML file. It also evaluates the optimized model if available.
 API-friendly version that can be imported and used in a FastAPI application.
 """
-
+import math
 import os
 import yaml
 import joblib
@@ -250,10 +250,8 @@ def save_metrics(metrics: Dict[str, Any], dataset_name: str, filename: str = "pe
 
         cleaned_metrics = {}
         for key, value in metrics.items():
-            if isinstance(value, np.ndarray):
-                cleaned_metrics[key] = value.tolist()
-            elif isinstance(value, np.number):
-                cleaned_metrics[key] = float(value)
+            if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
+                cleaned_metrics[key] = None
             else:
                 cleaned_metrics[key] = value
 

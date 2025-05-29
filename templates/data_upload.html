@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}SemiAuto Clustering - Data Upload{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <h1 class="section-title">Data Upload</h1>
+    <p>Upload your dataset to begin the Clustering analysis process.</p>
+
+    <div class="card">
+        <div class="card-header">Upload Dataset</div>
+        <form id="uploadForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="datasetFile">Dataset File (CSV format only)</label>
+                <input type="file" id="datasetFile" name="file" accept=".csv" required>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Upload Data</button>
+            </div>
+        </form>
+        <div id="spinner" class="spinner hidden"></div>
+        <div id="uploadStatus" class="alert hidden"></div>
+    </div>
+
+    <div class="card hidden" id="dataOverview">
+        <div class="card-header">Data Overview</div>
+        <div id="dataDetails"></div>
+        <div class="form-group">
+            <a href="/preprocessing" class="btn btn-success">Continue to Preprocessing</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    // Add spinner control functions
+    function showSpinner() {
+        document.getElementById('spinner').classList.remove('hidden');
+    }
+
+    function hideSpinner() {
+        document.getElementById('spinner').classList.add('hidden');
+    }
+
+    // Handle form submission
+    document.getElementById('uploadForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const formData = new FormData(event.target);
+        const uploadStatus = document.getElementById('uploadStatus');
+        const dataOverview = document.getElementById('dataOverview');
+        const dataDetails = document.getElementById('dataDetails');
+
+        // Reset UI elements
+        uploadStatus.className = 'alert hidden';
+        dataOverview.classList.add('hidden');
+        showSpinner();
+
+        try {
+            const response = await fetch('/api/upload', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.detail || 'Upload failed');
+            }
+
+            uploadStatus.textContent = result.message;
+            uploadStatus.className = 'alert alert-success';
+
+            // Display data overview
+            dataDetails.innerHTML = `
+                <p><strong>Dataset uploaded successfully!</strong></p>
+                <p><strong>Available Columns:</strong></p>
+                <ul>
+                    ${result.columns.map(col => `<li>${col}</li>`).join('')}
+                </ul>
+            `;
+
+            dataOverview.classList.remove('hidden');
+        } catch (error) {
+            uploadStatus.textContent = `Error: ${error.message}`;
+            uploadStatus.className = 'alert alert-danger';
+        } finally {
+            hideSpinner();
+        }
+    });
+</script>
+{% endblock %}

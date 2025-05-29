@@ -1,0 +1,5 @@
+algorithm: lloyd
+init: k-means++
+max_iter: 141
+n_clusters: 3
+n_init: 25
