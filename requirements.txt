@@ -1,29 +1,42 @@
 # local package
 -e .
 
-# external requirements
-click
-Sphinx
-coverage
-awscli>=1.25
-flake8
-python-dotenv>=0.5.1
-pandas
-numpy
-scikit-learn
-scipy
-matplotlib
-seaborn
-pydantic
-PyYAML
-cloudpickle
-joblib
-umap-learn
-logger
-tqdm
-optuna
-reportlab
-ipython
-jupyterlab
-hdbscan
-fpdf
+# external requirements - Conservative compatible versions
+click>=8.0.0
+Sphinx>=4.0.0
+coverage>=7.0.0
+awscli>=1.25.0
+flake8>=5.0.0
+python-dotenv>=1.0.0
+
+# Scientific computing stack - flexible versions
+pandas>=1.5.0
+numpy>=1.21.0
+scikit-learn>=1.2.0
+scipy>=1.9.0
+matplotlib>=3.6.0
+seaborn>=0.11.0
+
+# Pydantic v2 for FastAPI compatibility
+pydantic>=2.0.0
+
+# Other utilities - flexible ranges
+PyYAML>=5.4.0
+cloudpickle>=2.0.0
+joblib>=1.2.0
+umap-learn>=0.5.0
+tqdm>=4.60.0
+optuna>=3.0.0
+reportlab>=3.6.0
+hdbscan>=0.8.0
+fpdf2>=2.5.0
+
+# Web framework
+fastapi>=0.95.0
+uvicorn>=0.20.0
+Jinja2>=3.1.0
+python-multipart>=0.0.5
+
+# Jupyter ecosystem
+ipython>=8.10.0
+jupyterlab>=3.6.0

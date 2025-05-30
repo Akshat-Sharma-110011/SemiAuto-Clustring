@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}SemiAuto Clustering - Feature Engineering{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <h1 class="section-title">Feature Engineering</h1>
+    <p>Enhance your dataset with advanced feature engineering techniques.</p>
+
+    <div class="card">
+        <div class="card-header">Feature Engineering Options</div>
+        <form id="featureEngineeringForm">
+            <div class="form-group">
+                <label for="useFeatureTools">Use Feature Tools</label>
+                <select id="useFeatureTools" name="use_feature_tools">
+                    <option value="true">Yes</option>
+                    <option value="false">No</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="featureSelectionMethod">Feature Selection Method</label>
+                <select id="featureSelectionMethod" name="feature_selection_method">
+                    <option value="none">None</option>
+                    <option value="variance">Variance Threshold</option>
+                    <option value="correlation">Remove Correlated Features</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="nFeatures">Number of Features to Keep</label>
+                <input type="number" id="nFeatures" name="n_features" value="20" min="1">
+            </div>
+
+            <button type="submit" class="btn btn-primary">Run Feature Engineering</button>
+        </form>
+        <!-- Status Indicators -->
+        <div id="spinner" class="spinner hidden"></div>
+        <div id="feStatus" class="alert hidden"></div>
+    </div>
+
+    <!-- Results Display -->
+    <div class="card hidden" id="featureResults">
+        <div class="card-header">Feature Engineering Report</div>
+        <div id="featureDetails" class="report-content"></div>
+        <div class="form-group">
+            <a href="/model-building" class="btn btn-success">Proceed to Model Building</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    async function runFeatureEngineering(event) {
+        event.preventDefault();
+        showSpinner();
+
+        const formData = new FormData(document.getElementById('featureEngineeringForm'));
+        const feStatus = document.getElementById('feStatus');
+        const featureResults = document.getElementById('featureResults');
+
+        // Process form data
+        const jsonData = {
+            use_feature_tools: formData.get('use_feature_tools') === 'true',
+            feature_selection_method: formData.get('feature_selection_method'),
+            n_features: parseInt(formData.get('n_features'))
+        };
+
+        try {
+            const response = await fetch('/api/feature-engineering', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(jsonData)
+            });
+
+            const result = await response.json();
+            feStatus.className = 'alert ' + (response.ok ? 'alert-success' : 'alert-danger');
+            feStatus.textContent = result.message || result.detail;
+            feStatus.classList.remove('hidden');
+
+            if (response.ok) {
+                featureResults.classList.remove('hidden');
+                const details = document.getElementById('featureDetails');
+
+                // Simplified results display
+                details.innerHTML = `
+                    <div class="metric-group">
+                        <h3>Feature Engineering Complete</h3>
+                        <p>${result.message}</p>
+                        ${result.feature_count ?
+                            `<p>Final Features: ${result.feature_count}</p>` : ''}
+                    </div>
+                `;
+            }
+        } catch (error) {
+            feStatus.textContent = `Network Error: ${error.message}`;
+            feStatus.className = 'alert alert-danger';
+            feStatus.classList.remove('hidden');
+        } finally {
+            hideSpinner();
+        }
+    }
+
+    // Attach the form submit event
+    document.getElementById('featureEngineeringForm').addEventListener('submit', runFeatureEngineering);
+</script>
+{% endblock %}

@@ -1,0 +1,134 @@
+original_cols:
+- star_id
+- region
+- ra
+- dec
+- starthjd
+- endhjd
+- bmag
+- berr
+- vmag
+- verr
+- rmag
+- rerr
+- imag
+- ierr
+- lcfil
+- npts
+numerical_cols:
+- ra
+- dec
+- starthjd
+- endhjd
+- bmag
+- berr
+- vmag
+- verr
+- rmag
+- rerr
+- imag
+- ierr
+- npts
+categorical_cols:
+- region
+- lcfil
+id_cols:
+- star_id
+skewed_cols:
+- starthjd
+- endhjd
+- bmag
+- berr
+- verr
+- rmag
+- rerr
+- imag
+- ierr
+normal_cols:
+- ra
+- dec
+- vmag
+- npts
+contains_null:
+- bmag
+- berr
+- vmag
+- verr
+- rmag
+- rerr
+- imag
+- ierr
+contains_outliers:
+- starthjd
+- endhjd
+- bmag
+- berr
+- vmag
+- verr
+- rmag
+- rerr
+- imag
+- ierr
+correlated_cols:
+  ra:
+  - column: dec
+    correlation: 0.8619527091866387
+  - column: npts
+    correlation: -0.9196498448243703
+  dec:
+  - column: ra
+    correlation: 0.8619527091866387
+  - column: npts
+    correlation: -0.7695386827681272
+  starthjd:
+  - column: endhjd
+    correlation: 0.7481739377485324
+  endhjd:
+  - column: starthjd
+    correlation: 0.7481739377485324
+  bmag:
+  - column: rmag
+    correlation: 0.9839074088276953
+  vmag:
+  - column: verr
+    correlation: 0.7965314998042402
+  - column: imag
+    correlation: 0.970644329135626
+  - column: ierr
+    correlation: 0.8009224342102187
+  verr:
+  - column: vmag
+    correlation: 0.7965314998042402
+  - column: imag
+    correlation: 0.7413973471917418
+  - column: ierr
+    correlation: 0.8819609051356766
+  rmag:
+  - column: bmag
+    correlation: 0.9839074088276953
+  imag:
+  - column: vmag
+    correlation: 0.970644329135626
+  - column: verr
+    correlation: 0.7413973471917418
+  - column: ierr
+    correlation: 0.8162257985306952
+  ierr:
+  - column: vmag
+    correlation: 0.8009224342102187
+  - column: verr
+    correlation: 0.8819609051356766
+  - column: imag
+    correlation: 0.8162257985306952
+  npts:
+  - column: ra
+    correlation: -0.9196498448243703
+  - column: dec
+    correlation: -0.7695386827681272
+timestamp: '2025-05-30 21:07:21'
+train_size: 0.8
+test_size: 0.2
+dataset_name: Star_Data_2025.04.16_04.44.28
+original_file_name: Star_Data_2025.04.16_04.44.28.csv
+train_rows: 111148
+test_rows: 27787

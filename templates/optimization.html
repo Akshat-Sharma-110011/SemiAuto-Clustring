@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+
+{% block title %}SemiAuto Clustering - Optimization{% endblock %}
+
+{% block content %}
+<div class="main-content">
+    <h1 class="section-title">Model Optimization</h1>
+    <p>Fine-tune your clustering model with hyperparameter optimization.</p>
+
+    <div class="card">
+        <div class="card-header">Optimization Settings</div>
+        <form id="optimizationForm">
+            <div class="form-group">
+                <label for="optimize">Enable Optimization</label>
+                <select id="optimize" name="optimize">
+                    <option value="true" selected>Yes</option>
+                    <option value="false">No</option>
+                </select>
+                <small>Perform hyperparameter tuning to improve model performance</small>
+            </div>
+
+            <div class="form-group optimization-option">
+                <label for="method">Optimization Method</label>
+                <select id="method" name="method">
+                    <option value="1" selected>Grid Search</option>
+                    <option value="2">Optuna</option>
+                </select>
+                <small>Method to search for optimal hyperparameters</small>
+            </div>
+
+            <div class="form-group optimization-option">
+                <label for="nTrials">Number of Trials</label>
+                <input type="number" id="nTrials" name="n_trials" value="50" min="10" max="500" required>
+                <small>Number of optimization iterations to run</small>
+            </div>
+
+            <div class="form-group optimization-option">
+                <label for="metric">Optimization Metric</label>
+                <select id="metric" name="metric">
+                    <option value="1" selected>Silhouette Score</option>
+                    <option value="2">Calinski-Harabasz Index</option>
+                    <option value="3">Davies-Bouldin Index</option>
+                    <option value="4">Adjusted Rand Index</option>
+                    <option value="5">Normalized Mutual Information</option>
+                    <option value="6">Homogeneity Score</option>
+                    <option value="7">Completeness Score</option>
+                    <option value="8">V-Measure Score</option>
+                </select>
+                <small>Metric to optimize for</small>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary" onclick="runOptimization(event)">Run Optimization</button>
+            </div>
+        </form>
+        <div id="spinner" class="spinner hidden"></div>
+        <div id="optimizationStatus" class="alert hidden"></div>
+    </div>
+
+    <div class="card hidden" id="optimizationResults">
+        <div class="card-header">Optimization Results</div>
+        <div id="optimizationDetails"></div>
+        <div class="metrics-container" id="metricsComparison"></div>
+        <div class="form-group">
+            <a href="/results" class="btn btn-success">Continue to Results</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const optimizeSelect = document.getElementById('optimize');
+        const optimizationOptions = document.querySelectorAll('.optimization-option');
+
+        function updateOptimizationOptions() {
+            const enableOptimization = optimizeSelect.value === 'true';
+            optimizationOptions.forEach(option => {
+                option.style.display = enableOptimization ? 'block' : 'none';
+            });
+        }
+
+        optimizeSelect.addEventListener('change', updateOptimizationOptions);
+        updateOptimizationOptions();
+    });
+
+    async function runOptimization(event) {
+        event.preventDefault();
+
+        const form = document.getElementById('optimizationForm');
+        const formData = new FormData(form);
+        const optimizationStatus = document.getElementById('optimizationStatus');
+        const optimizationResults = document.getElementById('optimizationResults');
+
+        const jsonData = {
+            optimize: formData.get('optimize') === 'true',
+            method: formData.get('method'),
+            n_trials: parseInt(formData.get('n_trials')),
+            metric: formData.get('metric')
+        };
+
+        optimizationStatus.className = 'alert hidden';
+        showSpinner();
+
+        try {
+            const response = await fetch('/api/optimize', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(jsonData)
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                optimizationStatus.textContent = result.optimization_result?.message || 'Optimization completed successfully!';
+                optimizationStatus.className = 'alert alert-success';
+
+                const optimizationDetails = document.getElementById('optimizationDetails');
+                const metricsComparison = document.getElementById('metricsComparison');
+
+                // Build details content
+                let detailsHTML = '<p><strong>Model optimization ';
+                detailsHTML += jsonData.optimize ? 'completed!' : 'skipped';
+                detailsHTML += '</strong></p>';
+
+                if (jsonData.optimize && result.optimization_result?.best_params) {
+                    detailsHTML += '<p><strong>Best Parameters:</strong></p><ul>';
+                    for (const [param, value] of Object.entries(result.optimization_result.best_params)) {
+                        detailsHTML += `<li>${param}: ${value}</li>`;
+                    }
+                    detailsHTML += '</ul>';
+                }
+                optimizationDetails.innerHTML = detailsHTML;
+
+                // Display clustering metrics
+                metricsComparison.innerHTML = '';
+                if (result.evaluation_result?.metrics) {
+                    const metrics = result.evaluation_result.metrics;
+
+                    // Internal metrics (no true labels needed)
+                    if (metrics.silhouette !== undefined) {
+                        addMetricCard(metricsComparison, 'Silhouette Score', metrics.silhouette.toFixed(4));
+                    }
+                    if (metrics.calinski_harabasz !== undefined) {
+                        addMetricCard(metricsComparison, 'Calinski-Harabasz Index', metrics.calinski_harabasz.toFixed(4));
+                    }
+                    if (metrics.davies_bouldin !== undefined) {
+                        addMetricCard(metricsComparison, 'Davies-Bouldin Index', metrics.davies_bouldin.toFixed(4));
+                    }
+
+                    // External metrics (require true labels)
+                    if (metrics.adjusted_rand !== undefined) {
+                        addMetricCard(metricsComparison, 'Adjusted Rand Index', metrics.adjusted_rand.toFixed(4));
+                    }
+                    if (metrics.normalized_mutual_info !== undefined) {
+                        addMetricCard(metricsComparison, 'Normalized Mutual Info', metrics.normalized_mutual_info.toFixed(4));
+                    }
+                    if (metrics.homogeneity !== undefined) {
+                        addMetricCard(metricsComparison, 'Homogeneity Score', metrics.homogeneity.toFixed(4));
+                    }
+                    if (metrics.completeness !== undefined) {
+                        addMetricCard(metricsComparison, 'Completeness Score', metrics.completeness.toFixed(4));
+                    }
+                    if (metrics.v_measure !== undefined) {
+                        addMetricCard(metricsComparison, 'V-Measure Score', metrics.v_measure.toFixed(4));
+                    }
+                }
+
+                optimizationResults.classList.remove('hidden');
+            } else {
+                optimizationStatus.textContent = result.detail || 'Optimization failed';
+                optimizationStatus.className = 'alert alert-danger';
+            }
+        } catch (error) {
+            optimizationStatus.textContent = 'Error: ' + error.message;
+            optimizationStatus.className = 'alert alert-danger';
+        } finally {
+            hideSpinner();
+        }
+    }
+
+    function addMetricCard(container, title, value) {
+        const card = document.createElement('div');
+        card.className = 'metric-card';
+
+        const titleElement = document.createElement('div');
+        titleElement.className = 'metric-title';
+        titleElement.textContent = title;
+
+        const valueElement = document.createElement('div');
+        valueElement.className = 'metric-value';
+        valueElement.textContent = value;
+
+        card.appendChild(titleElement);
+        card.appendChild(valueElement);
+        container.appendChild(card);
+    }
+</script>
+{% endblock %}

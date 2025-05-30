@@ -1,0 +1,74 @@
+original_cols:
+- 'Unnamed: 0'
+- Age
+- Sex
+- Ethnicity
+- BMI
+- Waist_Circumference
+- Fasting_Blood_Glucose
+- HbA1c
+- Blood_Pressure_Systolic
+- Blood_Pressure_Diastolic
+- Cholesterol_Total
+- Cholesterol_HDL
+- Cholesterol_LDL
+- GGT
+- Serum_Urate
+- Physical_Activity_Level
+- Dietary_Intake_Calories
+- Alcohol_Consumption
+- Smoking_Status
+- Family_History_of_Diabetes
+- Previous_Gestational_Diabetes
+numerical_cols:
+- Age
+- BMI
+- Waist_Circumference
+- Fasting_Blood_Glucose
+- HbA1c
+- Blood_Pressure_Systolic
+- Blood_Pressure_Diastolic
+- Cholesterol_Total
+- Cholesterol_HDL
+- Cholesterol_LDL
+- GGT
+- Serum_Urate
+- Dietary_Intake_Calories
+- Family_History_of_Diabetes
+- Previous_Gestational_Diabetes
+categorical_cols:
+- Sex
+- Ethnicity
+- Physical_Activity_Level
+- Alcohol_Consumption
+- Smoking_Status
+id_cols:
+- 'Unnamed: 0'
+skewed_cols: []
+normal_cols:
+- Age
+- BMI
+- Waist_Circumference
+- Fasting_Blood_Glucose
+- HbA1c
+- Blood_Pressure_Systolic
+- Blood_Pressure_Diastolic
+- Cholesterol_Total
+- Cholesterol_HDL
+- Cholesterol_LDL
+- GGT
+- Serum_Urate
+- Dietary_Intake_Calories
+- Family_History_of_Diabetes
+- Previous_Gestational_Diabetes
+contains_null:
+- Alcohol_Consumption
+contains_outliers: []
+correlated_cols: {}
+timestamp: '2025-05-30 17:33:51'
+train_size: 0.8
+test_size: 0.2
+dataset_name: diabetes_dataset
+original_file_name: diabetes_dataset.csv
+train_rows: 8000
+test_rows: 2000

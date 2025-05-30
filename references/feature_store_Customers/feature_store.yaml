@@ -1,0 +1,39 @@
+original_cols:
+- CustomerID
+- Gender
+- Age
+- Annual Income ($)
+- Spending Score (1-100)
+- Profession
+- Work Experience
+- Family Size
+numerical_cols:
+- Age
+- Annual Income ($)
+- Spending Score (1-100)
+- Work Experience
+- Family Size
+categorical_cols:
+- Gender
+- Profession
+id_cols:
+- CustomerID
+skewed_cols:
+- Work Experience
+normal_cols:
+- Age
+- Annual Income ($)
+- Spending Score (1-100)
+- Family Size
+contains_null:
+- Profession
+contains_outliers:
+- Work Experience
+correlated_cols: {}
+timestamp: '2025-05-31 00:38:17'
+train_size: 0.8
+test_size: 0.2
+dataset_name: Customers
+original_file_name: Customers.csv
+train_rows: 1600
+test_rows: 400
