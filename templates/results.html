@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Results - SemiAuto Classification{% endblock %}
+{% block title %}Results - SemiAuto Clustering{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -54,7 +54,7 @@
         margin: 0.5rem;
     }
 
-    .confusion-matrix, .classification-report {
+    .confusion-matrix, .Clustering-report {
         width: 100%;
         margin: 2rem 0;
         border-collapse: collapse;
@@ -63,7 +63,7 @@
     }
 
     .confusion-matrix th, .confusion-matrix td,
-    .classification-report th, .classification-report td {
+    .Clustering-report th, .Clustering-report td {
         padding: 0.75rem;
         text-align: center;
         border: 1px solid #dee2e6;
@@ -74,13 +74,13 @@
         color: white;
     }
 
-    .classification-report th {
+    .Clustering-report th {
         background-color: #28a745;
         color: white;
     }
 
     .confusion-matrix tbody tr:nth-child(odd),
-    .classification-report tbody tr:nth-child(odd) {
+    .Clustering-report tbody tr:nth-child(odd) {
         background-color: #f8f9fa;
     }
 
@@ -126,10 +126,10 @@
 </div>
 
 <div class="results-container">
-    <h2>Classification Results for Dataset: {{ dataset_name }}</h2>
+    <h2>Clustering Results for Dataset: {{ dataset_name }}</h2>
 
     <div class="metrics-grid">
-        {% for metric, value in metrics.items() if metric not in ['confusion_matrix', 'classification_report', 'problem_type', 'num_classes', 'class_names'] %}
+        {% for metric, value in metrics.items() if metric not in ['confusion_matrix', 'Clustering_report', 'problem_type', 'num_classes', 'class_names'] %}
             {% if value is number or value is string %}
             <div class="metric-card">
                 <div class="metric-label">{{ metric|replace('_', ' ')|title }}</div>
@@ -171,9 +171,9 @@
     </table>
     {% endif %}
 
-    {% if metrics.classification_report %}
-    <h3 class="section-heading">Classification Report</h3>
-    <table class="classification-report">
+    {% if metrics.Clustering_report %}
+    <h3 class="section-heading">Clustering Report</h3>
+    <table class="Clustering-report">
         <thead>
             <tr>
                 <th>Class</th>
@@ -184,7 +184,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for class_name, report in metrics.classification_report.items() if class_name not in ['accuracy', 'macro avg', 'weighted avg'] %}
+            {% for class_name, report in metrics.Clustering_report.items() if class_name not in ['accuracy', 'macro avg', 'weighted avg'] %}
             <tr>
                 <td>{{ class_name }}</td>
                 <td>{{ "%.4f"|format(report.precision) }}</td>
@@ -195,21 +195,21 @@
             {% endfor %}
             <tr>
                 <td>Accuracy</td>
-                <td colspan="4">{{ "%.4f"|format(metrics.classification_report.accuracy) }}</td>
+                <td colspan="4">{{ "%.4f"|format(metrics.Clustering_report.accuracy) }}</td>
             </tr>
             <tr>
                 <td>Macro Avg</td>
-                <td>{{ "%.4f"|format(metrics.classification_report['macro avg'].precision) }}</td>
-                <td>{{ "%.4f"|format(metrics.classification_report['macro avg'].recall) }}</td>
-                <td>{{ "%.4f"|format(metrics.classification_report['macro avg']['f1-score']) }}</td>
-                <td>{{ metrics.classification_report['macro avg'].support }}</td>
+                <td>{{ "%.4f"|format(metrics.Clustering_report['macro avg'].precision) }}</td>
+                <td>{{ "%.4f"|format(metrics.Clustering_report['macro avg'].recall) }}</td>
+                <td>{{ "%.4f"|format(metrics.Clustering_report['macro avg']['f1-score']) }}</td>
+                <td>{{ metrics.Clustering_report['macro avg'].support }}</td>
             </tr>
             <tr>
                 <td>Weighted Avg</td>
-                <td>{{ "%.4f"|format(metrics.classification_report['weighted avg'].precision) }}</td>
-                <td>{{ "%.4f"|format(metrics.classification_report['weighted avg'].recall) }}</td>
-                <td>{{ "%.4f"|format(metrics.classification_report['weighted avg']['f1-score']) }}</td>
-                <td>{{ metrics.classification_report['weighted avg'].support }}</td>
+                <td>{{ "%.4f"|format(metrics.Clustering_report['weighted avg'].precision) }}</td>
+                <td>{{ "%.4f"|format(metrics.Clustering_report['weighted avg'].recall) }}</td>
+                <td>{{ "%.4f"|format(metrics.Clustering_report['weighted avg']['f1-score']) }}</td>
+                <td>{{ metrics.Clustering_report['weighted avg'].support }}</td>
             </tr>
         </tbody>
     </table>

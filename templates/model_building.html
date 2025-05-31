@@ -1,17 +1,17 @@
 {% extends "base.html" %}
 
-{% block title %}SemiAuto Classification - Model Building{% endblock %}
+{% block title %}SemiAuto Clustering - Model Building{% endblock %}
 
 {% block content %}
 <div class="main-content">
     <h1 class="section-title">Model Building</h1>
-    <p>Select a classification algorithm to build your model.</p>
+    <p>Select a Clustering algorithm to build your model.</p>
 
     <div class="card">
         <div class="card-header">Choose Model</div>
         <form id="modelBuildingForm">
             <div class="form-group">
-                <label for="modelName">Classification Algorithm</label>
+                <label for="modelName">Clustering Algorithm</label>
                 <select id="modelName" name="model_name" required>
                     <option value="" disabled selected>Select a model</option>
                     {% for model_name in available_models %}
