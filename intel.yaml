@@ -1,0 +1,35 @@
+best_params_path: D:\MLOps-Projects\SemiAuto\SemiAuto-Clustring\reports\metrics\best_params_diabetes_dataset\params.json
+cleaned_test_path: data\cleaned\data_diabetes_dataset\test.csv
+cleaned_train_path: data\cleaned\data_diabetes_dataset\train.csv
+cleaning_pipeline_path: model\pipelines\preprocessing_diabetes_dataset\cleaning.pkl
+cleaning_report_path: reports/readme/cleaning_report.md
+cleaning_timestamp: '2025-05-31 20:13:52'
+dataset_name: diabetes_dataset
+evaluation_timestamp: '2025-05-31 20:21:57'
+feature_engineering_config:
+  feature_selection_method: variance
+  n_features_selected: 75
+  timestamp: '2025-05-31 20:14:39'
+  use_clustering_features: true
+  use_feature_tools: true
+feature_store_path: D:\MLOps-Projects\SemiAuto\SemiAuto-Clustring\references\feature_store_diabetes_dataset\feature_store.yaml
+model_name: KMeans
+model_path: model\model_diabetes_dataset\model.pkl
+model_timestamp: '2025-05-31 20:14:47'
+optimization_timestamp: '2025-05-31 20:21:56'
+optimized_evaluation_timestamp: '2025-05-31 20:21:57'
+optimized_model_path: D:\MLOps-Projects\SemiAuto\SemiAuto-Clustring\model\model_diabetes_dataset\optimized_model.pkl
+optimized_performance_metrics_path: reports\metrics\performance_diabetes_dataset\optimized_performance.yaml
+original_file_name: diabetes_dataset.csv
+performance_metrics_path: reports\metrics\performance_diabetes_dataset\performance.yaml
+plots_dir: D:\MLOps-Projects\SemiAuto\SemiAuto-Clustring\reports/figures\plots_diabetes_dataset
+preprocessing_pipeline_path: model\pipelines\preprocessing_diabetes_dataset\preprocessing.pkl
+processed_timestamp: '2025-05-31 20:14:09'
+processor_pipeline_path: model\pipelines\preprocessing_diabetes_dataset\processor.pkl
+test_path: D:\MLOps-Projects\SemiAuto\SemiAuto-Clustring\data\raw\data_diabetes_dataset\test.csv
+test_preprocessed_path: data\interim\data_diabetes_dataset\test_preprocessed.csv
+test_transformed_path: data\processed\data_diabetes_dataset\test_transformed.csv
+train_path: D:\MLOps-Projects\SemiAuto\SemiAuto-Clustring\data\raw\data_diabetes_dataset\train.csv
+train_preprocessed_path: data\interim\data_diabetes_dataset\train_preprocessed.csv
+train_transformed_path: data\processed\data_diabetes_dataset\train_transformed.csv
+transformation_pipeline_path: model\pipelines\preprocessing_diabetes_dataset\transformation.pkl

@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="semiauto-clustering",
-    version="1.0.2",
+    version="1.0.3",
     author="Akshat-Sharma-110011",
     author_email="akshatsharma.business.1310@gmail.com",
     description="Automated clustering pipeline for machine learning",

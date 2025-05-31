@@ -717,23 +717,24 @@ class DataCleaner:
 
         return df
 
-    def basic_data_cleaning(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Apply all cleaning steps in sequence."""
+    def basic_data_cleaning(self, df: pd.DataFrame, is_transform: bool = False) -> pd.DataFrame:
         section("Starting Basic Data Cleaning", logger)
-
-        # Store original shape
         self.stats["start_shape"] = df.shape
 
-        # Apply cleaning steps in logical order
-        df = self.drop_high_null_columns(df)
-        df = self.drop_constant_columns(df)
-        df = self.drop_near_constant_columns(df)
-        df = self.drop_duplicated_columns(df)
+        # Skip column dropping during transformation
+        if not is_transform:
+            df = self.drop_high_null_columns(df)
+            df = self.drop_constant_columns(df)
+            df = self.drop_near_constant_columns(df)
+            df = self.drop_duplicated_columns(df)
+
         df = self.clean_string_columns(df)
         df = self.normalize_case_in_categorical(df)
         df = self.fix_mixed_types(df)
         df = self.standardize_date_formats(df)
         df = self.remove_high_null_rows(df)
+
+        # ... rest of the method ...
 
         # Store final shape
         self.stats["end_shape"] = df.shape
@@ -785,7 +786,7 @@ class DataCleaner:
         self.known_dtypes = {col: df[col].dtype for col in df.columns}
 
         # Apply the cleaning pipeline
-        cleaned_df = self.basic_data_cleaning(df.copy())
+        cleaned_df = self.basic_data_cleaning(df.copy(), is_transform=False)
 
         # Save the column state after cleaning
         self.cleaned_cols = cleaned_df.columns.tolist()
@@ -837,22 +838,18 @@ class DataCleaner:
             logger.warning(f"Failed to calculate correlations: {str(e)}")
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Transform data using the fitted cleaning pipeline.
-
-        Args:
-            df: Pandas DataFrame to clean
-
-        Returns:
-            pd.DataFrame: Cleaned DataFrame
-        """
         if not self._is_fitted:
             raise ValueError("DataCleaner must be fitted before transform can be called")
 
         section("Transforming Data with Fitted Cleaning Pipeline", logger)
 
-        # Apply the cleaning steps
-        return self.basic_data_cleaning(df.copy())
+        # Only drop columns identified during training
+        columns_to_drop = [col for col in self.stats["columns_dropped"]
+                           if col in df.columns]
+        df = df.drop(columns=columns_to_drop, errors='ignore')
+
+        # Apply other cleaning steps (string cleaning, case normalization, etc.)
+        return self.basic_data_cleaning(df.copy(), is_transform=True)
 
     def fit_transform(self, df: pd.DataFrame, dataset_name: str = None) -> pd.DataFrame:
         """
