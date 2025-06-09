@@ -58,7 +58,7 @@ app = FastAPI(
 )
 
 # Set up static files and templates
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/clustering-static", StaticFiles(directory="static"), name="clustering-static")
 templates = Jinja2Templates(directory="templates")
 
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=True, allow_methods=["*"],
@@ -643,9 +643,9 @@ def generate_report():
 if __name__ == "__main__":
     # Create required directories if they don't exist
     logger.info("Creating required directories")
-    os.makedirs("static/css", exist_ok=True)
-    os.makedirs("static/js", exist_ok=True)
-    os.makedirs("static/images", exist_ok=True)
+    os.makedirs("clustering-static/css", exist_ok=True)
+    os.makedirs("clustering-static/js", exist_ok=True)
+    os.makedirs("clustering-static/images", exist_ok=True)
     os.makedirs("templates", exist_ok=True)
 
     logger.info("Starting FastAPI server on 127.0.0.1:8010")
